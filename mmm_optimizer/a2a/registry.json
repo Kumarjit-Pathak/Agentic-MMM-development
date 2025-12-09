@@ -1,0 +1,24 @@
+{
+  "agents": {
+    "data_scientist": {
+      "endpoint": "http://localhost:8001/execute",
+      "auth": "Bearer ds_token_placeholder",
+      "description": "Technical optimizer for hyperparameter tuning",
+      "timeout_seconds": 30
+    },
+    "business_analyst": {
+      "endpoint": "http://localhost:8002/execute",
+      "auth": "Bearer ba_token_placeholder",
+      "description": "Business validator for ROI realism and constraints",
+      "timeout_seconds": 30
+    },
+    "stakeholder": {
+      "endpoint": "http://localhost:8003/execute",
+      "auth": "Bearer sh_token_placeholder",
+      "description": "Executive approver for deployment decisions",
+      "timeout_seconds": 60
+    }
+  },
+  "protocol_version": "1.0",
+  "jsonrpc_version": "2.0"
+}

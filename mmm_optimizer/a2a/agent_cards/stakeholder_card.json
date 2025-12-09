@@ -1,0 +1,340 @@
+{
+  "agent_id": "mmm_stakeholder_v1.0",
+  "name": "MMM Stakeholder Agent",
+  "version": "1.0.0",
+  "protocol_version": "a2a/1.0",
+  "created_at": "2025-12-01T00:00:00Z",
+  "updated_at": "2025-12-08T00:00:00Z",
+  
+  "description": "Executive decision maker embodying CMO/Senior Marketing Leadership perspective in FMCG/CPG context. Makes final approval/rejection decisions balancing short-term sales lift with long-term brand equity. Considers financial performance, brand health, strategic alignment, risk management, and organizational readiness.",
+  
+  "role": "executive_approver",
+  "domain": "strategic_marketing_leadership",
+  "expertise": [
+    "executive_decision_making",
+    "brand_strategy",
+    "budget_allocation",
+    "risk_management",
+    "stakeholder_management"
+  ],
+  
+  "capabilities": [
+    {
+      "name": "make_deployment_decision",
+      "description": "Review complete optimization results and make final go/no-go decision for model deployment",
+      "method": "POST",
+      "endpoint": "/execute",
+      "timeout_seconds": 60,
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "object",
+            "description": "Final MMM state after optimization",
+            "properties": {
+              "iteration": {"type": "integer"},
+              "performance": {
+                "type": "object",
+                "properties": {
+                  "mape": {"type": "number"},
+                  "r2": {"type": "number"},
+                  "mae": {"type": "number"}
+                },
+                "required": ["mape", "r2"]
+              },
+              "model_config": {"type": "object"},
+              "business_context": {
+                "type": "object",
+                "properties": {
+                  "industry": {"type": "string"},
+                  "brand": {"type": "string"},
+                  "budget": {"type": "number"},
+                  "flags": {
+                    "type": "array",
+                    "description": "Business validation issues"
+                  }
+                }
+              },
+              "convergence_score": {"type": "number"}
+            },
+            "required": ["performance", "business_context"]
+          },
+          "history": {
+            "type": "object",
+            "description": "Complete optimization trajectory",
+            "properties": {
+              "session_id": {"type": "string"},
+              "iterations": {"type": "array"},
+              "total_iterations": {"type": "integer"}
+            }
+          },
+          "validation_summary": {
+            "type": "object",
+            "description": "Summary from Data Scientist and Business Analyst",
+            "properties": {
+              "data_scientist_assessment": {"type": "string"},
+              "business_analyst_assessment": {"type": "string"}
+            }
+          },
+          "extra_context": {"type": "object"}
+        },
+        "required": ["state", "history"]
+      },
+      "output_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "agent_name": {
+            "type": "string",
+            "const": "stakeholder"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "full_approval",
+              "conditional_approval",
+              "test_approval",
+              "rejection"
+            ]
+          },
+          "decision": {
+            "type": "string",
+            "enum": [
+              "APPROVED",
+              "CONDITIONAL_APPROVAL",
+              "APPROVED_FOR_TESTING",
+              "REJECTED"
+            ]
+          },
+          "reasoning": {
+            "type": "string",
+            "description": "Business narrative explaining the decision"
+          },
+          "flags": {
+            "type": "object",
+            "properties": {
+              "conditions": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "Guardrails or phasing requirements"
+              },
+              "timeline": {"type": "string"},
+              "success_criteria": {"type": "string"},
+              "rollback_trigger": {"type": "string"},
+              "implementation_plan": {"type": "string"}
+            }
+          },
+          "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+          "next_agent_suggestion": {
+            "type": "null",
+            "description": "Always null as Stakeholder is final decision maker"
+          }
+        },
+        "required": ["agent_name", "action", "decision", "reasoning", "confidence"]
+      },
+      "examples": [
+        {
+          "input": {
+            "state": {
+              "performance": {"mape": 8.2, "r2": 0.89},
+              "business_context": {
+                "industry": "CPG",
+                "brand": "Premium Brand",
+                "flags": []
+              },
+              "convergence_score": 0.95
+            },
+            "history": {"total_iterations": 15}
+          },
+          "output": {
+            "agent_name": "stakeholder",
+            "action": "conditional_approval",
+            "decision": "CONDITIONAL_APPROVAL",
+            "reasoning": "Model quality strong (MAPE 8.2%, R² 0.89). Recommended TV cut of -25% is aggressive for premium brand. Approve with phased implementation.",
+            "flags": {
+              "conditions": [
+                "Phase TV reduction: -10% Q1, -10% Q2, -5% Q3",
+                "Monthly brand tracking survey",
+                "Weekly sales velocity monitoring"
+              ],
+              "timeline": "Q1-Q3 2026",
+              "success_criteria": "Sales lift ≥2.5%, Brand awareness ≥85%",
+              "rollback_trigger": "If brand awareness drops >5pts, pause TV cuts"
+            },
+            "confidence": 0.92
+          }
+        }
+      ]
+    }
+  ],
+  
+  "constraints": {
+    "decision_framework": {
+      "APPROVED": {
+        "conditions": [
+          "MAPE < 8%",
+          "R² > 0.90",
+          "No critical business flags",
+          "All validations passed"
+        ],
+        "description": "Full endorsement, ready for immediate national rollout"
+      },
+      "CONDITIONAL_APPROVAL": {
+        "conditions": [
+          "MAPE < 10%",
+          "R² > 0.85",
+          "Significant but manageable changes",
+          "Need guardrails or phasing"
+        ],
+        "description": "Approved with monitoring, phased rollout, or conditions"
+      },
+      "APPROVED_FOR_TESTING": {
+        "conditions": [
+          "MAPE < 12%",
+          "Promising direction but unproven",
+          "Want real-world validation"
+        ],
+        "description": "Pilot in limited geography (2-3 markets, 8 weeks)"
+      },
+      "REJECTED": {
+        "conditions": [
+          "MAPE > 12%",
+          "Critical unresolved issues",
+          "Conflicts with strategy",
+          "Unacceptable risk"
+        ],
+        "description": "Not ready for deployment, needs more work"
+      }
+    },
+    "executive_concerns": [
+      {
+        "category": "sales_financial",
+        "questions": [
+          "Will this drive incremental sales?",
+          "What's the ROI improvement?",
+          "Can we afford transition costs?",
+          "What's the payback period?"
+        ]
+      },
+      {
+        "category": "brand_equity",
+        "questions": [
+          "Are we cutting brand-building channels too aggressively?",
+          "Will awareness or perception suffer?",
+          "Is sustained visibility maintained for premium brands?"
+        ]
+      },
+      {
+        "category": "strategic_alignment",
+        "questions": [
+          "Does this fit our brand strategy?",
+          "Are we maintaining competitive share-of-voice?",
+          "Does this support new product launches?"
+        ]
+      },
+      {
+        "category": "risk_management",
+        "questions": [
+          "What if the model is wrong?",
+          "Can we execute these changes?",
+          "What's the rollback plan?"
+        ]
+      },
+      {
+        "category": "organizational_readiness",
+        "questions": [
+          "Do we have digital capabilities for increased spend?",
+          "Are TV contracts flexible?",
+          "Can the team manage this transition?"
+        ]
+      }
+    ],
+    "never_approve_if": [
+      "Methodology violations flagged",
+      "Critical business validation issues unresolved",
+      "MAPE > 10% and R² < 0.70",
+      "Recommendations conflict with brand strategy"
+    ],
+    "brand_equity_lens": {
+      "premium_brands": "Protect TV/brand-building, phase cuts slowly",
+      "growth_brands": "Accept higher risk for performance channels",
+      "mature_brands": "Balance efficiency with awareness maintenance",
+      "defend_brands": "Conservative changes, proven channels only"
+    }
+  },
+  
+  "performance_metrics": {
+    "avg_response_time_ms": 8000,
+    "p50_response_time_ms": 7200,
+    "p95_response_time_ms": 12000,
+    "p99_response_time_ms": 18000,
+    "success_rate": 0.98,
+    "total_invocations": 420,
+    "approval_rate": 0.65,
+    "conditional_approval_rate": 0.25,
+    "rejection_rate": 0.10
+  },
+  
+  "dependencies": {
+    "runtime": {
+      "language": "python",
+      "version": ">=3.9"
+    },
+    "libraries": [
+      {"name": "anthropic", "version": ">=0.18.0", "purpose": "Claude API client"},
+      {"name": "pyyaml", "version": ">=6.0", "purpose": "Configuration loading"}
+    ],
+    "llm": {
+      "provider": "anthropic",
+      "model": "claude-sonnet-4-20250514",
+      "context_window": 200000,
+      "estimated_tokens_per_call": 4000,
+      "estimated_cost_per_call_usd": 0.060
+    }
+  },
+  
+  "auth": {
+    "type": "bearer",
+    "token_env_var": "ANTHROPIC_API_KEY",
+    "required_scopes": ["api:read", "api:write"]
+  },
+  
+  "sla": {
+    "availability": 0.99,
+    "max_response_time_ms": 30000,
+    "rate_limit": {
+      "requests_per_minute": 30,
+      "requests_per_hour": 1500
+    }
+  },
+  
+  "monitoring": {
+    "health_check_endpoint": "/health",
+    "metrics_endpoint": "/metrics",
+    "log_level": "INFO",
+    "log_file": "logs/stakeholder_agent_{date}.log"
+  },
+  
+  "versioning": {
+    "semantic_version": "1.0.0",
+    "api_version": "v1",
+    "backwards_compatible_with": ["0.9.x"],
+    "deprecation_policy": "6 months notice for breaking changes"
+  },
+  
+  "metadata": {
+    "tags": ["mmm", "executive-decision", "cmo", "deployment-approval"],
+    "category": "executive_approver",
+    "maturity": "production",
+    "license": "proprietary"
+  },
+  
+  "contact": {
+    "maintainer": "MMM Development Team",
+    "email": "mmm-dev@company.com",
+    "repository": "https://github.com/Kumarjit-Pathak/Agentic-MMM-development",
+    "documentation": "https://docs.company.com/mmm/stakeholder-agent",
+    "support": "https://support.company.com/mmm"
+  }
+}

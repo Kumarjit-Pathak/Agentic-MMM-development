@@ -1,0 +1,114 @@
+# Configuration for MMM Multi-Agent Optimization System
+
+# System Settings
+system:
+  name: "MMM Multi-Agent Optimizer"
+  version: "1.0.0"
+  log_level: "INFO"
+  max_concurrent_agents: 1  # Sequential execution for now
+
+# Orchestrator Settings
+orchestrator:
+  max_iterations: 20
+  convergence_threshold: 0.95
+  enable_bert_routing: false  # Set to true when BERT model trained
+  fallback_to_rules: true
+
+# Agent Configuration
+agents:
+  data_scientist:
+    enabled: true
+    timeout_seconds: 30
+    max_consecutive_rejections: 3
+    
+  business_analyst:
+    enabled: true
+    timeout_seconds: 30
+    benchmark_source: "config/industry_benchmarks.json"
+    
+  stakeholder:
+    enabled: true
+    timeout_seconds: 60
+    approval_thresholds:
+      excellent_mape: 8.0
+      acceptable_mape: 10.0
+      min_r2: 0.85
+      
+  research_persona:
+    enabled: true
+    timeout_seconds: 30
+    strict_mode: true  # Always rejects methodology changes
+
+# Methodology Guard Settings
+methodology_guard:
+  layer1_enabled: true  # Config comparison
+  layer2_enabled: false  # LLM semantic detection (future)
+  protected_spec_path: "mmm_optimizer/methodology_guard/methodology_spec.json"
+  
+  # Rejection handling
+  rejection_strategy: "hybrid"  # hybrid | immediate_human | always_retry
+  max_rejections_before_human: 3
+
+# BERT Router Settings
+bert_router:
+  model_name: "bert-base-uncased"
+  checkpoint_path: null  # Set to path when trained
+  confidence_threshold: 0.7
+  fallback_to_rules_below_threshold: true
+
+# A2A Protocol Settings
+a2a:
+  protocol_version: "1.0"
+  jsonrpc_version: "2.0"
+  registry_path: "mmm_optimizer/a2a/registry.json"
+  enable_http_calls: false  # Local calls for now
+  retry_attempts: 3
+  retry_delay_seconds: 1
+
+# Convergence Detection
+convergence:
+  window_size: 5  # Look at last N iterations
+  mape_stability_threshold: 0.5  # Max % change in MAPE
+  min_iterations_before_check: 5
+
+# Performance Thresholds
+performance:
+  target_mape: 8.0
+  min_acceptable_mape: 12.0
+  target_r2: 0.90
+  min_acceptable_r2: 0.80
+
+# Business Validation Benchmarks
+business_benchmarks:
+  CPG:
+    tv_roi_range: [2.5, 4.5]
+    digital_roi_range: [3.0, 6.0]
+    print_roi_range: [1.5, 3.0]
+    max_carryover_weeks: 12
+    
+  Retail:
+    tv_roi_range: [2.0, 4.0]
+    digital_roi_range: [4.0, 8.0]
+    print_roi_range: [1.0, 2.5]
+    max_carryover_weeks: 8
+    
+  Financial_Services:
+    tv_roi_range: [1.5, 3.5]
+    digital_roi_range: [2.5, 5.0]
+    print_roi_range: [1.0, 2.0]
+    max_carryover_weeks: 16
+
+# Logging and Audit
+logging:
+  save_history: true
+  history_output_dir: "./results/history"
+  save_agent_outputs: true
+  agent_output_dir: "./results/agent_outputs"
+  verbose_mode: true
+
+# Experimental Features (Not Yet Implemented)
+experimental:
+  entity_intent_classifier: false
+  parallel_agent_calls: false
+  human_in_the_loop: false
+  real_time_monitoring: false

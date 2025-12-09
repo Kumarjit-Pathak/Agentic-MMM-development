@@ -1,0 +1,57 @@
+{
+  "performance": {
+    "mape": 15.2,
+    "r2": 0.82,
+    "mae": 1250.5
+  },
+  "model_config": {
+    "methodology": {
+      "adstock": {
+        "type": "geometric"
+      },
+      "saturation": {
+        "type": "hill"
+      },
+      "hierarchy": {
+        "levels": ["channel", "campaign"]
+      },
+      "architecture": {
+        "type": "hierarchical_bayesian"
+      },
+      "loss": {
+        "type": "mape"
+      }
+    },
+    "hyperparameters": {
+      "tv_adstock_decay": 0.6,
+      "digital_adstock_decay": 0.4,
+      "print_adstock_decay": 0.5,
+      "tv_saturation_alpha": 2.0,
+      "digital_saturation_alpha": 1.8,
+      "print_saturation_alpha": 2.2,
+      "learning_rate": 0.001,
+      "batch_size": 32,
+      "num_samples": 2000
+    },
+    "channels": [
+      {
+        "name": "TV",
+        "adstock_decay": 0.6,
+        "saturation_alpha": 2.0,
+        "carryover_weeks": 8
+      },
+      {
+        "name": "Digital",
+        "adstock_decay": 0.4,
+        "saturation_alpha": 1.8,
+        "carryover_weeks": 4
+      },
+      {
+        "name": "Print",
+        "adstock_decay": 0.5,
+        "saturation_alpha": 2.2,
+        "carryover_weeks": 6
+      }
+    ]
+  }
+}

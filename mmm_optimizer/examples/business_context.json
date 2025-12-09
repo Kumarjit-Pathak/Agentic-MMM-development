@@ -1,0 +1,31 @@
+{
+  "industry": "CPG",
+  "brand": "ExampleBrand",
+  "campaign_type": "Q4_Holiday_2024",
+  "campaign_start_date": "2024-10-01",
+  "campaign_end_date": "2024-12-31",
+  "budget": 5000000,
+  "budget_currency": "USD",
+  "channels": ["TV", "Digital", "Print"],
+  "key_metrics": ["ROAS", "Carryover", "Saturation"],
+  "objectives": [
+    "Maximize ROI across all channels",
+    "Optimize carryover effects",
+    "Identify saturation points"
+  ],
+  "constraints": {
+    "min_tv_spend": 1000000,
+    "max_digital_spend": 2500000,
+    "total_budget": 5000000
+  },
+  "historical_performance": {
+    "q3_2024_mape": 18.5,
+    "q2_2024_mape": 20.1,
+    "q1_2024_mape": 22.3
+  },
+  "stakeholder_requirements": {
+    "target_mape": 8.0,
+    "min_acceptable_mape": 12.0,
+    "deployment_deadline": "2025-01-15"
+  }
+}

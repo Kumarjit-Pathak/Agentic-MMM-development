@@ -1,0 +1,339 @@
+{
+  "agent_id": "mmm_business_analyst_v1.0",
+  "name": "MMM Business Analyst Agent",
+  "version": "1.0.0",
+  "protocol_version": "a2a/1.0",
+  "created_at": "2025-12-01T00:00:00Z",
+  "updated_at": "2025-12-08T00:00:00Z",
+  
+  "description": "Expert in marketing economics, media benchmarks, and ROI analysis. Validates MMM outputs against industry standards across 6 industries (CPG, Auto, Retail, Finance, Tech, Pharma). Acts as business brain ensuring model recommendations are realistic and align with market knowledge.",
+  
+  "role": "business_validator",
+  "domain": "marketing_economics",
+  "expertise": [
+    "roi_analysis",
+    "media_planning",
+    "industry_benchmarks",
+    "marketing_effectiveness",
+    "business_constraints"
+  ],
+  
+  "capabilities": [
+    {
+      "name": "validate_business_outputs",
+      "description": "Compare model outputs (ROI, carryover, coefficients) against industry benchmarks and flag unrealistic values",
+      "method": "POST",
+      "endpoint": "/execute",
+      "timeout_seconds": 30,
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "object",
+            "description": "Current MMM state with model outputs",
+            "properties": {
+              "iteration": {"type": "integer"},
+              "performance": {
+                "type": "object",
+                "properties": {
+                  "mape": {"type": "number"},
+                  "r2": {"type": "number"},
+                  "mae": {"type": "number"}
+                }
+              },
+              "model_config": {"type": "object"},
+              "business_context": {
+                "type": "object",
+                "properties": {
+                  "industry": {
+                    "type": "string",
+                    "enum": ["CPG", "Auto", "Retail", "Finance", "Tech", "Pharma"]
+                  },
+                  "brand": {"type": "string"},
+                  "budget": {"type": "number"}
+                }
+              }
+            },
+            "required": ["performance", "business_context"]
+          },
+          "history": {
+            "type": "object",
+            "description": "Optimization history for pattern detection"
+          },
+          "extra_context": {"type": "object"}
+        },
+        "required": ["state", "history"]
+      },
+      "output_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "agent_name": {
+            "type": "string",
+            "const": "business_analyst"
+          },
+          "action": {
+            "type": "string",
+            "enum": ["business_validation", "constraint_proposal"]
+          },
+          "validation_results": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": ["APPROVED", "PARTIAL_ALIGNMENT", "CRITICAL_ISSUES"]
+              },
+              "issues": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "field": {"type": "string"},
+                    "value": {"type": "number"},
+                    "benchmark": {"type": "string"},
+                    "severity": {
+                      "type": "string",
+                      "enum": ["WARNING", "CRITICAL"]
+                    },
+                    "explanation": {"type": "string"}
+                  }
+                }
+              }
+            }
+          },
+          "reasoning": {"type": "string"},
+          "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+          "next_agent_suggestion": {
+            "type": "string",
+            "enum": ["data_scientist", "stakeholder", null]
+          },
+          "flags": {"type": "object"}
+        },
+        "required": ["agent_name", "action", "reasoning", "confidence"]
+      },
+      "examples": [
+        {
+          "input": {
+            "state": {
+              "performance": {"mape": 8.9, "r2": 0.88},
+              "business_context": {"industry": "CPG"}
+            }
+          },
+          "output": {
+            "agent_name": "business_analyst",
+            "action": "business_validation",
+            "validation_results": {
+              "status": "PARTIAL_ALIGNMENT",
+              "issues": [
+                {
+                  "field": "digital_roi",
+                  "value": 8.2,
+                  "benchmark": "3.0-6.0x",
+                  "severity": "WARNING",
+                  "explanation": "Digital ROI exceeds typical CPG range. Investigate attribution."
+                }
+              ]
+            },
+            "reasoning": "TV and Print ROI within benchmarks. Digital slightly elevated.",
+            "confidence": 0.78,
+            "next_agent_suggestion": "data_scientist"
+          }
+        }
+      ]
+    },
+    {
+      "name": "detect_loops",
+      "description": "Detect BA-DS infinite loops and trigger escalation to Stakeholder",
+      "method": "POST",
+      "endpoint": "/detect_loop",
+      "timeout_seconds": 5,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "history": {
+            "type": "object",
+            "description": "Complete iteration history"
+          }
+        },
+        "required": ["history"]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "loop_detected": {"type": "boolean"},
+          "cycle_count": {"type": "integer"},
+          "recommendation": {
+            "type": "string",
+            "enum": ["continue", "escalate_to_stakeholder"]
+          }
+        }
+      }
+    }
+  ],
+  
+  "constraints": {
+    "industry_benchmarks": {
+      "cpg": {
+        "roi_ranges": {
+          "tv": [2.5, 4.5],
+          "digital": [3.0, 6.0],
+          "print": [1.5, 3.0],
+          "ooh": [2.0, 4.0]
+        },
+        "carryover_weeks": {
+          "tv": [6, 12],
+          "digital": [2, 4],
+          "print": [4, 8]
+        }
+      },
+      "auto": {
+        "roi_ranges": {
+          "tv": [1.5, 3.5],
+          "digital": [2.5, 5.5],
+          "print": [1.0, 2.5]
+        },
+        "carryover_weeks": {
+          "tv": [8, 16],
+          "digital": [4, 8],
+          "print": [6, 12]
+        }
+      },
+      "retail": {
+        "roi_ranges": {
+          "tv": [2.0, 4.0],
+          "digital": [4.0, 8.0],
+          "print": [1.0, 2.0]
+        },
+        "carryover_weeks": {
+          "tv": [4, 8],
+          "digital": [1, 3],
+          "print": [2, 4]
+        }
+      },
+      "finance": {
+        "roi_ranges": {
+          "tv": [2.0, 4.5],
+          "digital": [3.0, 7.0],
+          "print": [1.5, 3.5]
+        },
+        "carryover_weeks": {
+          "tv": [8, 16],
+          "digital": [4, 10],
+          "print": [6, 12]
+        }
+      },
+      "tech": {
+        "roi_ranges": {
+          "tv": [1.5, 3.0],
+          "digital": [5.0, 12.0],
+          "print": [0.5, 1.5]
+        },
+        "carryover_weeks": {
+          "tv": [4, 8],
+          "digital": [2, 6],
+          "print": [3, 6]
+        }
+      },
+      "pharma": {
+        "roi_ranges": {
+          "tv": [2.5, 5.0],
+          "digital": [3.0, 6.5],
+          "print": [2.0, 4.0]
+        },
+        "carryover_weeks": {
+          "tv": [10, 20],
+          "digital": [3, 8],
+          "print": [6, 14]
+        }
+      }
+    },
+    "severity_classification": {
+      "warning": "Value outside benchmark but explainable (unique market, data quality)",
+      "critical": "Implausible value requiring immediate attention (20x ROI, 52-week carryover)"
+    },
+    "loop_detection": {
+      "threshold": 3,
+      "lookback_iterations": 12,
+      "escalation_trigger": "BA-DS or DS-BA pattern repeats ≥3 times"
+    },
+    "loop_escape_conditions": [
+      "BA-DS cycle repeats 3+ times",
+      "MAPE improvement < 0.1% for 8+ iterations",
+      "Total iterations ≥ 12 with persistent issues"
+    ]
+  },
+  
+  "performance_metrics": {
+    "avg_response_time_ms": 4500,
+    "p50_response_time_ms": 3800,
+    "p95_response_time_ms": 7500,
+    "p99_response_time_ms": 10000,
+    "success_rate": 0.97,
+    "total_invocations": 980,
+    "avg_issues_flagged_per_call": 1.8,
+    "false_positive_rate": 0.12
+  },
+  
+  "dependencies": {
+    "runtime": {
+      "language": "python",
+      "version": ">=3.9"
+    },
+    "libraries": [
+      {"name": "anthropic", "version": ">=0.18.0", "purpose": "Claude API client"},
+      {"name": "pyyaml", "version": ">=6.0", "purpose": "Configuration loading"}
+    ],
+    "llm": {
+      "provider": "anthropic",
+      "model": "claude-sonnet-4-20250514",
+      "context_window": 200000,
+      "estimated_tokens_per_call": 2500,
+      "estimated_cost_per_call_usd": 0.038
+    }
+  },
+  
+  "auth": {
+    "type": "bearer",
+    "token_env_var": "ANTHROPIC_API_KEY",
+    "required_scopes": ["api:read", "api:write"]
+  },
+  
+  "sla": {
+    "availability": 0.99,
+    "max_response_time_ms": 12000,
+    "rate_limit": {
+      "requests_per_minute": 60,
+      "requests_per_hour": 3000
+    }
+  },
+  
+  "monitoring": {
+    "health_check_endpoint": "/health",
+    "metrics_endpoint": "/metrics",
+    "log_level": "INFO",
+    "log_file": "logs/business_analyst_agent_{date}.log"
+  },
+  
+  "versioning": {
+    "semantic_version": "1.0.0",
+    "api_version": "v1",
+    "backwards_compatible_with": ["0.9.x"],
+    "deprecation_policy": "6 months notice for breaking changes"
+  },
+  
+  "metadata": {
+    "tags": ["mmm", "business-validation", "roi-analysis", "benchmarks"],
+    "category": "business_validator",
+    "maturity": "production",
+    "license": "proprietary"
+  },
+  
+  "contact": {
+    "maintainer": "MMM Development Team",
+    "email": "mmm-dev@company.com",
+    "repository": "https://github.com/Kumarjit-Pathak/Agentic-MMM-development",
+    "documentation": "https://docs.company.com/mmm/business-analyst-agent",
+    "support": "https://support.company.com/mmm"
+  }
+}
